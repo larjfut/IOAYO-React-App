@@ -35,7 +35,7 @@ export default function App() {
       const userMsg: ChatMessage = {
         id: nanoid(),
         role: 'user',
-        content: input
+        content: input,
       };
       setMessages((prev) => [...prev, userMsg]);
       setInput('');
