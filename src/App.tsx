@@ -33,9 +33,9 @@ export default function App() {
       setPending(true);
 
       try {
-      const { data } = await axios.post<ChatResponse>('/api/chat', {
-        message: input
-        );
+        const { data } = await axios.post<ChatResponse>('/api/chat', {
+          message: input
+        });
         const botMsg: ChatMessage = {
           id: nanoid(),
           role: 'assistant',
@@ -60,43 +60,4 @@ export default function App() {
   return (
     <div className="max-w-2xl mx-auto p-6 font-sans">
       <h1 className="text-2xl font-bold mb-4">
-        💬 Chat with IOAYO Assistant
-      </h1>
-
-      <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded shadow h-[60vh] overflow-y-auto">
-        {messages.map(({ id, role, content }) => (
-          <div
-            key={id}
-            className={`p-3 rounded ${
-              role === 'user' ? 'bg-purple-100 text-right' : 'bg-gray-100'
-            }`}
-          >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeSanitize]}
-            >
-              {content}
-            </ReactMarkdown>
-          </div>
-        ))}
-        <div ref={bottomRef} />
-      </div>
-
-      <form onSubmit={sendMessage} className="flex gap-2">
-        <input
-          aria-label="Chat input"
-          className="flex-1 border rounded p-2"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message…"
-        />
-        <button
-          className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          disabled={pending}
-        >
-          {pending ? '…' : 'Send'}
-        </button>
-      </form>
-    </div>
-  );
-}
+        💬 Chat with IOAYO
