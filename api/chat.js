@@ -2,7 +2,7 @@ import { OpenAI } from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const ASSISTANT_ID = 'asst_jKfwAJceQdVe0J9YEUtSkVuu'; // Replace with your actual Assistant ID
+const ASSISTANT_ID = 'asst_tvklrkMPmPPasXjG373vdKNb'; // Replace with your actual Assistant ID
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
