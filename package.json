@@ -17,6 +17,7 @@
     "remark-gfm": "^3.0.1",
     "rehype-raw": "^6.1.1",
     "rehype-sanitize": "^5.0.1",
+    "openai": "^4.15.0",
     "nanoid": "^4.0.0"
   },
   "devDependencies": {
