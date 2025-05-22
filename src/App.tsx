@@ -1,5 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
-import type { FormEvent } from 'react';
+import { useState, useRef, useCallback, FormEvent } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -36,7 +35,7 @@ export default function App() {
       const userMsg: ChatMessage = {
         id: nanoid(),
         role: 'user',
-        content: input
+        content: input,
       };
       setMessages((prev) => [...prev, userMsg]);
       setInput('');
@@ -44,13 +43,12 @@ export default function App() {
 
       try {
         const { data } = await axios.post<ChatResponse>('/api/chat', {
-          message: input
+          message: input,
         });
-
         const botMsg: ChatMessage = {
           id: nanoid(),
           role: 'assistant',
-          content: data.reply
+          content: data.reply,
         };
         setMessages((prev) => [...prev, botMsg]);
       } catch (err: any) {
@@ -58,7 +56,7 @@ export default function App() {
           err.response?.data?.error ?? 'Unexpected error – please retry.';
         setMessages((prev) => [
           ...prev,
-          { id: nanoid(), role: 'assistant', content: `❌ ${errText}` }
+          { id: nanoid(), role: 'assistant', content: `❌ ${errText}` },
         ]);
       } finally {
         setPending(false);
@@ -70,7 +68,9 @@ export default function App() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 font-sans">
-      <h2 className="text-2xl font-bold mb-4">💬 Enter a zipcode, county or city to find services nearby.</h2>
+      <h1 className="text-2xl font-bold mb-4">
+        💬 Chat with IOAYO Assistant
+      </h1>
 
       <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded shadow h-[60vh] overflow-y-auto">
         {messages.map(({ id, role, content }) => (
@@ -78,10 +78,12 @@ export default function App() {
             key={id}
             className={`p-3 rounded ${
               role === 'user' ? 'bg-purple-100 text-right' : 'bg-gray-100'
-            }`}>
+            }`}
+          >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeSanitize]}>
+              rehypePlugins={[rehypeSanitize]}
+            >
               {content}
             </ReactMarkdown>
           </div>
@@ -89,18 +91,19 @@ export default function App() {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="flex gap-2">
+      <form onSubmit={sendMessage} className="flex gap-2 items-center">
         <input
           aria-label="Chat input"
-          className="flex-1 border rounded p-2"
+          className="flex-1 border rounded-lg p-4 text-lg w-full"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message…"
         />
         <button
           type="submit"
-          className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          disabled={pending}>
+          className="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-6 py-3 rounded-lg disabled:opacity-50"
+          disabled={pending}
+        >
           {pending ? '…' : 'Send'}
         </button>
       </form>
