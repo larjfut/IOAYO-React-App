@@ -42,13 +42,14 @@ export default function App() {
       setPending(true);
 
       try {
-        const { data } = await axios.post<ChatResponse>('/api/chat', {
-          message: input
-        });
+       // avoid TSX‐generic ambiguity by dropping `<ChatResponse>` here
+       const res = await axios.post('/api/chat', { message: input });
+      // then assert the shape
+     const { reply } = res.data as ChatResponse;
         const botMsg: ChatMessage = {
           id: nanoid(),
           role: 'assistant',
-          content: data.reply
+          content: reply
         };
         setMessages((prev) => [...prev, botMsg]);
       } catch (err: any) {
