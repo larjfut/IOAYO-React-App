@@ -6,8 +6,16 @@ import rehypeSanitize from 'rehype-sanitize';
 import { nanoid } from 'nanoid';
 
 type Role = 'user' | 'assistant';
-interface ChatMessage { id: string; role: Role; content: string }
-interface ChatResponse { reply: string }
+
+interface ChatMessage {
+  id: string;
+  role: Role;
+  content: string;
+}
+
+interface ChatResponse {
+  reply: string;
+}
 
 export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -15,14 +23,16 @@ export default function App() {
   const [pending, setPending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () =>
+  const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const sendMessage = useCallback(
     async (e?: FormEvent) => {
       e?.preventDefault();
       if (!input.trim() || pending) return;
 
+      // 1️⃣ Add the user's message
       const userMsg: ChatMessage = {
         id: nanoid(),
         role: 'user',
@@ -33,9 +43,12 @@ export default function App() {
       setPending(true);
 
       try {
+        // 2️⃣ Call your Serverless function
         const { data } = await axios.post<ChatResponse>('/api/chat', {
           message: input
         });
+
+        // 3️⃣ Add the assistant's reply
         const botMsg: ChatMessage = {
           id: nanoid(),
           role: 'assistant',
@@ -43,6 +56,7 @@ export default function App() {
         };
         setMessages((m) => [...m, botMsg]);
       } catch (err: any) {
+        // 4️⃣ Handle errors
         const errText =
           err.response?.data?.error ?? 'Unexpected error – please retry.';
         setMessages((m) => [
@@ -60,4 +74,43 @@ export default function App() {
   return (
     <div className="max-w-2xl mx-auto p-6 font-sans">
       <h1 className="text-2xl font-bold mb-4">
-        💬 Chat with IOAYO
+        💬 How can I help?  Or just enter your county or zip code to find services.
+      </h1>
+
+      <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded shadow h-[60vh] overflow-y-auto">
+        {messages.map(({ id, role, content }) => (
+          <div
+            key={id}
+            className={`p-3 rounded ${
+              role === 'user' ? 'bg-purple-100 text-right' : 'bg-gray-100'
+            }`}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeSanitize]}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
+        ))}
+
+        {/* Dummy div to scroll into view */}
+        <div ref={bottomRef} />
+      </div>
+
+      <form onSubmit={sendMessage} className="flex gap-2">
+        <input
+          aria-label="Chat input"
+          className="flex-1 border rounded p-2"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type a message…"
+        />
+        <button
+          type="submit"
+          className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          disabled={pending}
+        >
+          {pending ? '…' : 'Send'}
+        </button>
+      </form>
