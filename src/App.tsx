@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback, FormEvent } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import type { FormEvent } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -45,6 +46,7 @@ export default function App() {
         const { data } = await axios.post<ChatResponse>('/api/chat', {
           message: input
         });
+
         const botMsg: ChatMessage = {
           id: nanoid(),
           role: 'assistant',
@@ -76,12 +78,10 @@ export default function App() {
             key={id}
             className={`p-3 rounded ${
               role === 'user' ? 'bg-purple-100 text-right' : 'bg-gray-100'
-            }`}
-          >
+            }`}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeSanitize]}
-            >
+              rehypePlugins={[rehypeSanitize]}>
               {content}
             </ReactMarkdown>
           </div>
@@ -100,8 +100,7 @@ export default function App() {
         <button
           type="submit"
           className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          disabled={pending}
-        >
+          disabled={pending}>
           {pending ? '…' : 'Send'}
         </button>
       </form>
