@@ -68,9 +68,9 @@ export default function App() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 font-sans">
-      <h1 className="text-2xl font-bold mb-4">
-        💬 Chat with IOAYO Assistant
-      </h1>
+      <h2 className="text-2xl font-bold mb-4">
+        💬 Enter a zipcode, county or city to find services nearby.
+      </h2>
 
       <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded shadow h-[60vh] overflow-y-auto">
         {messages.map(({ id, role, content }) => (
@@ -94,7 +94,7 @@ export default function App() {
       <form onSubmit={sendMessage} className="flex gap-2 items-center">
         <input
           aria-label="Chat input"
-          className="flex-1 border rounded-lg p-4 text-lg w-full"
+          className="flex-1 border rounded-lg p3 text-lg w-full"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message…"
