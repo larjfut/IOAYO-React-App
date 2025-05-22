@@ -35,21 +35,20 @@ export default function App() {
       const userMsg: ChatMessage = {
         id: nanoid(),
         role: 'user',
-        content: input,
+        content: input
       };
       setMessages((prev) => [...prev, userMsg]);
       setInput('');
       setPending(true);
 
       try {
-       // avoid TSX‐generic ambiguity by dropping `<ChatResponse>` here
-       const res = await axios.post('/api/chat', { message: input });
-      // then assert the shape
-     const { reply } = res.data as ChatResponse;
+        const { data } = await axios.post<ChatResponse>('/api/chat', {
+          message: input
+        });
         const botMsg: ChatMessage = {
           id: nanoid(),
           role: 'assistant',
-          content: reply
+          content: data.reply
         };
         setMessages((prev) => [...prev, botMsg]);
       } catch (err: any) {
@@ -69,9 +68,7 @@ export default function App() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 font-sans">
-      <h1 className="text-2xl font-bold mb-4">
-        💬 Chat with IOAYO Assistant
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">💬 Chat with IOAYO Assistant</h1>
 
       <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded shadow h-[60vh] overflow-y-auto">
         {messages.map(({ id, role, content }) => (
