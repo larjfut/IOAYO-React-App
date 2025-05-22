@@ -33,9 +33,8 @@ export default function App() {
       setPending(true);
 
       try {
-        const { data } = await axios.post<ChatResponse>(
-          `${process.env.NEXT_PUBLIC_API_URL}/chat`,
-          { message: input }
+      const { data } = await axios.post<ChatResponse>('/api/chat', {
+        message: input
         );
         const botMsg: ChatMessage = {
           id: nanoid(),
