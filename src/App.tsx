@@ -32,35 +32,30 @@ export default function App() {
       e?.preventDefault();
       if (!input.trim() || pending) return;
 
-      // 1️⃣ Add the user's message
       const userMsg: ChatMessage = {
         id: nanoid(),
         role: 'user',
         content: input
       };
-      setMessages((m) => [...m, userMsg]);
+      setMessages((prev) => [...prev, userMsg]);
       setInput('');
       setPending(true);
 
       try {
-        // 2️⃣ Call your Serverless function
         const { data } = await axios.post<ChatResponse>('/api/chat', {
           message: input
         });
-
-        // 3️⃣ Add the assistant's reply
         const botMsg: ChatMessage = {
           id: nanoid(),
           role: 'assistant',
           content: data.reply
         };
-        setMessages((m) => [...m, botMsg]);
+        setMessages((prev) => [...prev, botMsg]);
       } catch (err: any) {
-        // 4️⃣ Handle errors
         const errText =
           err.response?.data?.error ?? 'Unexpected error – please retry.';
-        setMessages((m) => [
-          ...m,
+        setMessages((prev) => [
+          ...prev,
           { id: nanoid(), role: 'assistant', content: `❌ ${errText}` }
         ]);
       } finally {
@@ -74,7 +69,7 @@ export default function App() {
   return (
     <div className="max-w-2xl mx-auto p-6 font-sans">
       <h1 className="text-2xl font-bold mb-4">
-        💬 How can I help?  Or just enter your county or zip code to find services.
+        💬 Chat with IOAYO Assistant
       </h1>
 
       <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded shadow h-[60vh] overflow-y-auto">
@@ -93,8 +88,6 @@ export default function App() {
             </ReactMarkdown>
           </div>
         ))}
-
-        {/* Dummy div to scroll into view */}
         <div ref={bottomRef} />
       </div>
 
@@ -114,3 +107,6 @@ export default function App() {
           {pending ? '…' : 'Send'}
         </button>
       </form>
+    </div>
+  );
+}
