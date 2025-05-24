@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import axios from 'axios';
+
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -39,8 +40,10 @@ export default function App() {
       setInput('');
       setPending(true);
 
+      const botId = nanoid();
       try {
-        const { data } = await axios.post('/api/chat', {
+
+      const { data } = await axios.post('/api/chat', {
           message: input,
         });
         const botMsg: ChatMessage = {
@@ -54,6 +57,7 @@ export default function App() {
           err.response?.data?.error ?? 'Unexpected error – please retry.';
         setMessages((prev: ChatMessage[]) => [
           ...prev,
+
           { id: nanoid(), role: 'assistant', content: `❌ ${errText}` },
         ]);
       } finally {
@@ -92,7 +96,7 @@ export default function App() {
       <form onSubmit={sendMessage} className="flex gap-2 items-center">
         <input
           aria-label="Chat input"
-          className="flex-1 border rounded-lg p3 text-lg w-full"
+          className="flex-1 border rounded-lg p-3 text-lg w-full"
           value={input}
           onChange={(e: any) => setInput(e.target.value)}
           placeholder="Type a message…"
