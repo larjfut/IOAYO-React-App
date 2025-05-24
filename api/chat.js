@@ -1,45 +1,51 @@
 import OpenAI from 'openai';
-
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-const ASSISTANT_ID = 'asst_tvklrkMPmPPasXjG373vdKNb'; // Replace with your actual Assistant ID
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body;
+  const { message } = req.body || {};
   if (!message) {
     return res.status(400).json({ error: 'Message is required' });
   }
 
   try {
-    const thread = await openai.beta.threads.create();
-    await openai.beta.threads.messages.create(thread.id, {
-      role: 'user',
-      content: message
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        stream: true,
+        messages: [{ role: 'user', content: message }],
+      }),
     });
 
-    const run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: ASSISTANT_ID
+    if (!openaiRes.body) {
+      throw new Error('No response body from OpenAI');
+    }
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
     });
 
-    let runStatus = run;
-    while (runStatus.status !== 'completed' && runStatus.status !== 'failed') {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    const reader = openaiRes.body.getReader();
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (value) res.write(Buffer.from(value));
     }
-
-    if (runStatus.status === 'failed') {
-      throw new Error('Run failed: ' + runStatus.last_error?.message);
-    }
-
-    const messages = await openai.beta.threads.messages.list(thread.id);
-    const reply = messages.data[0].content[0].text.value;
-    res.status(200).json({ reply });
+    res.end();
   } catch (err) {
     console.error('❌ Assistant error:', err);
-    res.status(500).json({ error: 'A server error occurred.', details: err.message });
+    res
+      .status(500)
+      .json({ error: 'A server error occurred.', details: err.message });
   }
 }

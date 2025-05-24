@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, FormEvent } from 'react';
-import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -13,9 +12,6 @@ interface ChatMessage {
   content: string;
 }
 
-interface ChatResponse {
-  reply: string;
-}
 
 export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -41,21 +37,62 @@ export default function App() {
       setInput('');
       setPending(true);
 
+      const botId = nanoid();
       try {
-        const { data } = await axios.post<ChatResponse>('/api/chat', {
-          message: input,
-        });
-        const botMsg: ChatMessage = {
-          id: nanoid(),
-          role: 'assistant',
-          content: data.reply,
-        };
-        setMessages((prev) => [...prev, botMsg]);
-      } catch (err: any) {
-        const errText =
-          err.response?.data?.error ?? 'Unexpected error – please retry.';
         setMessages((prev) => [
           ...prev,
+          { id: botId, role: 'assistant', content: '' },
+        ]);
+
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: input }),
+        });
+
+        if (!response.body) throw new Error('No response body');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let acc = '';
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let boundary = buffer.indexOf('\n\n');
+          while (boundary !== -1) {
+            const chunk = buffer.slice(0, boundary).trim();
+            buffer = buffer.slice(boundary + 2);
+            if (chunk.startsWith('data:')) {
+              const data = chunk.replace(/^data:\s*/, '');
+              if (data === '[DONE]') {
+                buffer = '';
+                break;
+              }
+              try {
+                const json = JSON.parse(data);
+                const text = json.choices?.[0]?.delta?.content || '';
+                if (text) {
+                  acc += text;
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === botId ? { ...m, content: acc } : m
+                    )
+                  );
+                  scrollToBottom();
+                }
+              } catch {
+                // ignore JSON parse errors
+              }
+            }
+            boundary = buffer.indexOf('\n\n');
+          }
+        }
+      } catch (err: any) {
+        const errText = err?.message ?? 'Unexpected error – please retry.';
+        setMessages((prev) => [
+          ...prev.filter((m) => m.id !== botId),
           { id: nanoid(), role: 'assistant', content: `❌ ${errText}` },
         ]);
       } finally {
