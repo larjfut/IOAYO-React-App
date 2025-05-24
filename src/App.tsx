@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
 import type { FormEvent } from 'react';
-import axios from 'axios';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -41,23 +40,60 @@ export default function App() {
       setPending(true);
 
       const botId = nanoid();
-      try {
+      setMessages((prev: ChatMessage[]) => [
+        ...prev,
+        { id: botId, role: 'assistant', content: '' },
+      ]);
 
-      const { data } = await axios.post('/api/chat', {
-          message: input,
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: input }),
         });
-        const botMsg: ChatMessage = {
-          id: nanoid(),
-          role: 'assistant',
-          content: data.reply,
-        };
-        setMessages((prev: ChatMessage[]) => [...prev, botMsg]);
+
+        if (!res.body) {
+          throw new Error('No response body');
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let finished = false;
+        while (!finished) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop() ?? '';
+          for (const line of lines) {
+            const match = line.match(/^data:\s*(.*)/);
+            if (!match) continue;
+            const data = match[1].trim();
+            if (data === '[DONE]') {
+              finished = true;
+              break;
+            }
+            try {
+              const payload = JSON.parse(data);
+              const text = payload.choices?.[0]?.delta?.content;
+              if (text) {
+                setMessages((prev: ChatMessage[]) =>
+                  prev.map((m) =>
+                    m.id === botId ? { ...m, content: m.content + text } : m
+                  )
+                );
+              }
+            } catch (err) {
+              console.error('Stream parse error', err);
+            }
+          }
+        }
       } catch (err: any) {
         const errText =
-          err.response?.data?.error ?? 'Unexpected error – please retry.';
+          err.response?.data?.error ?? err.message ?? 'Unexpected error – please retry.';
         setMessages((prev: ChatMessage[]) => [
-          ...prev,
-
+          ...prev.filter((m) => m.id !== botId),
           { id: nanoid(), role: 'assistant', content: `❌ ${errText}` },
         ]);
       } finally {
