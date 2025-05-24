@@ -1,51 +1,37 @@
-import OpenAI from 'openai';
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// File: pages/api/chat.ts
+import OpenAI from "openai";
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+export const config = { runtime: "edge" };
 
-  const { message } = req.body || {};
-  if (!message) {
-    return res.status(400).json({ error: 'Message is required' });
-  }
+export default async function handler(req: Request) {
+  const { messages } = await req.json();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY });
 
-  try {
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+  const stream = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo-0125",
+    stream: true,
+    messages,
+  });
+
+  const encoder = new TextEncoder();
+  const headers = {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+  };
+
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        for await (const token of stream) {
+          const textChunk = token.choices[0].delta.content || "";
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`)
+          );
+        }
+        controller.close();
       },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        stream: true,
-        messages: [{ role: 'user', content: message }],
-      }),
-    });
-
-    if (!openaiRes.body) {
-      throw new Error('No response body from OpenAI');
-    }
-
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-    });
-
-    const reader = openaiRes.body.getReader();
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (value) res.write(Buffer.from(value));
-    }
-    res.end();
-  } catch (err) {
-    console.error('❌ Assistant error:', err);
-    res
-      .status(500)
-      .json({ error: 'A server error occurred.', details: err.message });
-  }
+    }),
+    { headers }
+  );
 }
