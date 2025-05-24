@@ -1,4 +1,7 @@
-import { useState, useRef, useCallback, FormEvent } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import type { FormEvent } from 'react';
+import axios from 'axios';
+
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -33,66 +36,28 @@ export default function App() {
         role: 'user',
         content: input,
       };
-      setMessages((prev) => [...prev, userMsg]);
+      setMessages((prev: ChatMessage[]) => [...prev, userMsg]);
       setInput('');
       setPending(true);
 
       const botId = nanoid();
       try {
-        setMessages((prev) => [
-          ...prev,
-          { id: botId, role: 'assistant', content: '' },
-        ]);
 
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: input }),
+      const { data } = await axios.post('/api/chat', {
+          message: input,
         });
-
-        if (!response.body) throw new Error('No response body');
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let acc = '';
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          let boundary = buffer.indexOf('\n\n');
-          while (boundary !== -1) {
-            const chunk = buffer.slice(0, boundary).trim();
-            buffer = buffer.slice(boundary + 2);
-            if (chunk.startsWith('data:')) {
-              const data = chunk.replace(/^data:\s*/, '');
-              if (data === '[DONE]') {
-                buffer = '';
-                break;
-              }
-              try {
-                const json = JSON.parse(data);
-                const text = json.choices?.[0]?.delta?.content || '';
-                if (text) {
-                  acc += text;
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === botId ? { ...m, content: acc } : m
-                    )
-                  );
-                  scrollToBottom();
-                }
-              } catch {
-                // ignore JSON parse errors
-              }
-            }
-            boundary = buffer.indexOf('\n\n');
-          }
-        }
+        const botMsg: ChatMessage = {
+          id: nanoid(),
+          role: 'assistant',
+          content: data.reply,
+        };
+        setMessages((prev: ChatMessage[]) => [...prev, botMsg]);
       } catch (err: any) {
-        const errText = err?.message ?? 'Unexpected error – please retry.';
-        setMessages((prev) => [
-          ...prev.filter((m) => m.id !== botId),
+        const errText =
+          err.response?.data?.error ?? 'Unexpected error – please retry.';
+        setMessages((prev: ChatMessage[]) => [
+          ...prev,
+
           { id: nanoid(), role: 'assistant', content: `❌ ${errText}` },
         ]);
       } finally {
@@ -110,7 +75,7 @@ export default function App() {
       </h2>
 
       <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded shadow h-[60vh] overflow-y-auto">
-        {messages.map(({ id, role, content }) => (
+        {messages.map(({ id, role, content }: ChatMessage) => (
           <div
             key={id}
             className={`p-3 rounded ${
@@ -133,7 +98,7 @@ export default function App() {
           aria-label="Chat input"
           className="flex-1 border rounded-lg p-3 text-lg w-full"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e: any) => setInput(e.target.value)}
           placeholder="Type a message…"
         />
         <button
