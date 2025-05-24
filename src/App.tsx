@@ -94,7 +94,7 @@ export default function App() {
       <form onSubmit={sendMessage} className="flex gap-2 items-center">
         <input
           aria-label="Chat input"
-          className="flex-1 border rounded-lg p3 text-lg w-full"
+          className="flex-1 border rounded-lg p-3 text-lg w-full"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message…"
