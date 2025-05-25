@@ -1,5 +1,13 @@
+// ─────────────────────────────────────────────────────────────
+// File: src/App.tsx
+// Working version with:
+// • type‑safe <form> handler (React.FormEvent + IIFE)
+// • spinner that shows ANY time `pending` is true
+// • pure Tailwind spinner (no external .loader class)
+// ─────────────────────────────────────────────────────────────
+
+import { useState, useRef, useCallback } from 'react';
 import type React from 'react';
-import type { FormEvent } from 'react';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -14,23 +22,19 @@ interface ChatMessage {
 }
 
 export default function App() {
-  // ── state ────────────────────────────────────────────────
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [pending, setPending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // ── utils ────────────────────────────────────────────────
   const scrollToBottom = () =>
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
 
-  // ── form submit handler (sync) ───────────────────────────
-const sendMessage = useCallback(
-  (e: React.FormEvent<HTMLFormElement>) => {
+  const sendMessage = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (!input.trim() || pending) return;
 
-      // run async work inside an IIFE so onSubmit still returns void
       (async () => {
         // 1. optimistic user message
         const userMsg: ChatMessage = {
@@ -73,7 +77,6 @@ const sendMessage = useCallback(
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
 
-            // separate on SSE linebreaks
             const lines = buffer.split(/\r?\n/);
             buffer = lines.pop() ?? '';
 
@@ -106,12 +109,11 @@ const sendMessage = useCallback(
           setPending(false);
           scrollToBottom();
         }
-      })(); // end IIFE
+      })();
     },
     [input, pending, messages],
   );
 
-  // ── render ───────────────────────────────────────────────
   return (
     <div className="max-w-2xl mx-auto p-6 font-sans">
       <h2 className="text-2xl font-bold mb-4">
@@ -138,16 +140,16 @@ const sendMessage = useCallback(
           </div>
         ))}
 
-        {/* spinner when assistant placeholder not yet present */}
-        {pending && !messages.some(m => m.role === 'assistant') && (
-          <div className="flex items-center gap-3 text-gray-500 p-3">
-            <span className="loader h-5 w-5 animate-spin rounded-full border-4 border-t-purple-600" />
-            <span>🤖 Thinking…</span>
-          </div>
-        )}
-
         <div ref={bottomRef} />
       </div>
+
+      {/* always‑visible spinner while pending */}
+      {pending && (
+        <div className="flex items-center gap-3 text-gray-500 p-3 mb-4">
+          <span className="h-5 w-5 animate-spin rounded-full border-4 border-gray-200 border-t-purple-600" />
+          <span>🤖 Thinking…</span>
+        </div>
+      )}
 
       {/* input */}
       <form onSubmit={sendMessage} className="flex gap-2 items-center">
