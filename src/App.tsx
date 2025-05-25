@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import type React from 'react';
 import type { FormEvent } from 'react';
 
 import ReactMarkdown from 'react-markdown';
@@ -25,8 +25,8 @@ export default function App() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   // ── form submit handler (sync) ───────────────────────────
-  const sendMessage = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+const sendMessage = useCallback(
+  (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (!input.trim() || pending) return;
 
