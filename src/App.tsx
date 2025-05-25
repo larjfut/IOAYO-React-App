@@ -1,20 +1,19 @@
 // ─────────────────────────────────────────────────────────────
 // File: src/App.tsx
 // Working version with:
-// • type‑safe <form> handler (React.FormEvent + IIFE)
+// • inferred <form> handler (no manual React.FormEvent annotation)
 // • spinner that shows ANY time `pending` is true
 // • pure Tailwind spinner (no external .loader class)
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useRef, useCallback } from 'react';
-import type React from 'react';
-
+import React, { useState, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import { nanoid } from 'nanoid';
 
 type Role = 'user' | 'assistant';
+
 interface ChatMessage {
   id: string;
   role: Role;
@@ -31,7 +30,7 @@ export default function App() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   const sendMessage = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    e => {
       e.preventDefault();
       if (!input.trim() || pending) return;
 
@@ -53,7 +52,7 @@ export default function App() {
           { id: botId, role: 'assistant', content: '' },
         ]);
 
-        // 3. build OpenAI‑compatible history
+        // 3. build OpenAI-compatible history
         const history = [...messages, userMsg].map(({ role, content }) => ({
           role,
           content,
@@ -89,8 +88,8 @@ export default function App() {
                   prev.map(m =>
                     m.id === botId
                       ? { ...m, content: m.content + text }
-                      : m,
-                  ),
+                      : m
+                  )
                 );
               }
             }
@@ -111,7 +110,7 @@ export default function App() {
         }
       })();
     },
-    [input, pending, messages],
+    [input, pending, messages]
   );
 
   return (
@@ -126,9 +125,7 @@ export default function App() {
           <div
             key={id}
             className={`p-3 rounded ${
-              role === 'user'
-                ? 'bg-purple-100 text-right'
-                : 'bg-gray-100'
+              role === 'user' ? 'bg-purple-100 text-right' : 'bg-gray-100'
             }`}
           >
             <ReactMarkdown
@@ -139,11 +136,10 @@ export default function App() {
             </ReactMarkdown>
           </div>
         ))}
-
         <div ref={bottomRef} />
       </div>
 
-      {/* always‑visible spinner while pending */}
+      {/* always-visible spinner while pending */}
       {pending && (
         <div className="flex items-center gap-3 text-gray-500 p-3 mb-4">
           <span className="h-5 w-5 animate-spin rounded-full border-4 border-gray-200 border-t-purple-600" />
