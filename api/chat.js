@@ -1,4 +1,3 @@
-// File: pages/api/chat.ts
 import OpenAI from "openai";
 
 export const config = { runtime: "edge" };
