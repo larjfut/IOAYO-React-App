@@ -1,13 +1,3 @@
-// ─────────────────────────────────────────────────────────────
-// File: src/App.tsx
-// Complete, build‑ready version with a type‑safe <form> handler
-// that shows a “🤖 Thinking…” indicator while the OpenAI stream
-// returns tokens.
-//
-// Requires: nanoid, react‑markdown, remark‑gfm, rehype‑sanitize,
-// Tailwind CSS (or drop in a tiny CSS class for the spinner).
-// ─────────────────────────────────────────────────────────────
-
 import { useState, useRef, useCallback, FormEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -177,12 +167,3 @@ export default function App() {
     </div>
   );
 }
-
-// ── optional plain‑CSS spinner if you’re not using Tailwind ──
-// .loader {
-//   border: 4px solid #eee;
-//   border-top: 4px solid #624B78; /* brand plum */
-//   border-radius: 50%;
-//   animation: spin 1s linear infinite;
-// }
-// @keyframes spin { to { transform: rotate(360deg); } }
