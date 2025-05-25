@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback, FormEvent } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import type { FormEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
