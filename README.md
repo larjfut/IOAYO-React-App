@@ -4,8 +4,17 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 Currently, two official plugins are available:
 
+
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## Getting started
+
+Install the dependencies using `npm ci` and provide an `OPENAI_KEY` environment variable. The key is required by the serverless function in [`api/chat.js`](api/chat.js) to connect to OpenAI. Once the dependencies are installed and the variable is set, start the development server with:
+
+```bash
+npm run dev
+```
 
 ## Expanding the ESLint configuration
 
