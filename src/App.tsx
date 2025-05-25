@@ -6,7 +6,8 @@
 // • pure Tailwind spinner (no external .loader class)
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import type React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -153,7 +154,9 @@ export default function App() {
           aria-label="Chat input"
           className="flex-1 border rounded-lg p-3 text-lg w-full"
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setInput(e.target.value)
+          }
           placeholder="Type a message…"
         />
         <button
