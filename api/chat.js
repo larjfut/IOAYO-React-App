@@ -40,8 +40,7 @@ export default async function handler(req: Request) {
         for await (const token of stream) {
           const textChunk = token.choices[0]?.delta?.content || '';
           if (textChunk) {
-            controller.enqueue(encoder.encode(`data: ${textChunk}\n\n`)); // plain text, no JSON
-          }
+          controller.enqueue(encoder.encode(`:connected\n\n`));          }
         }
         controller.close();
       },
@@ -55,3 +54,6 @@ export default async function handler(req: Request) {
     },
   );
 }
+// inside your ReadableStream.start()
+
+// then for-await your OpenAI stream…
